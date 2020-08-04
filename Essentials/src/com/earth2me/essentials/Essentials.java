@@ -619,7 +619,7 @@ public class Essentials extends JavaPlugin implements net.ess3.api.IEssentials {
                 return true;
             } catch (NotEnoughArgumentsException ex) {
                 sender.sendMessage(command.getDescription());
-                sender.sendMessage(command.getUsage().replaceAll("<command>", commandLabel));
+                sender.sendMessage(command.getUsage().replaceAll("<command>", commandLabel) + (command.getName().equalsIgnoreCase("pay") ? " <knuts | sickles | galleons>" : ""));
                 if (!ex.getMessage().isEmpty()) {
                     sender.sendMessage(ex.getMessage());
                 }

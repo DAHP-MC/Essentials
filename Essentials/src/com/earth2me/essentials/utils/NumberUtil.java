@@ -1,6 +1,7 @@
 package com.earth2me.essentials.utils;
 
 import net.ess3.api.IEssentials;
+import net.md_5.bungee.api.ChatColor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -9,13 +10,11 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-import static com.earth2me.essentials.I18n.tl;
-
 public class NumberUtil {
 
     private static final DecimalFormat twoDPlaces = new DecimalFormat("#,###.##");
     private static final DecimalFormat currencyFormat = new DecimalFormat("#0.00", DecimalFormatSymbols.getInstance(Locale.US));
-    
+
     // This field is likely to be modified in com.earth2me.essentials.Settings when loading currency format.
     // This ensures that we can supply a constant formatting.
     private static NumberFormat PRETTY_FORMAT = NumberFormat.getInstance(Locale.US);
@@ -36,56 +35,19 @@ public class NumberUtil {
     }
 
     public static String shortCurrency(final BigDecimal value, final IEssentials ess) {
-        if (ess.getSettings().isCurrencySymbolSuffixed()) {
-            return formatAsCurrency(value) + ess.getSettings().getCurrencySymbol();
-        }
-        return ess.getSettings().getCurrencySymbol() + formatAsCurrency(value);
+        return getRPMoney(value);
     }
 
     public static String formatDouble(final double value) {
-        return twoDPlaces.format(value);
-    }
-
-    public static String formatAsCurrency(final BigDecimal value) {
-        String str = currencyFormat.format(value);
-        if (str.endsWith(".00")) {
-            str = str.substring(0, str.length() - 3);
-        }
-        return str;
-    }
-
-    public static String formatAsPrettyCurrency(BigDecimal value) {
-        String str = PRETTY_FORMAT.format(value);
-        if (str.endsWith(".00")) {
-            str = str.substring(0, str.length() - 3);
-        }
-        return str;
+        return getRPMoney(new BigDecimal(value));
     }
 
     public static String displayCurrency(final BigDecimal value, final IEssentials ess) {
-        String currency = formatAsPrettyCurrency(value);
-        String sign = "";
-        if (value.signum() < 0) {
-            currency = currency.substring(1);
-            sign = "-";
-        }
-        if (ess.getSettings().isCurrencySymbolSuffixed()) {
-            return sign + tl("currency", currency, ess.getSettings().getCurrencySymbol());
-        }
-        return sign + tl("currency", ess.getSettings().getCurrencySymbol(), currency);
+        return getRPMoney(value);
     }
 
     public static String displayCurrencyExactly(final BigDecimal value, final IEssentials ess) {
-        String currency = value.toPlainString();
-        String sign = "";
-        if (value.signum() < 0) {
-            currency = currency.substring(1);
-            sign = "-";
-        }
-        if (ess.getSettings().isCurrencySymbolSuffixed()) {
-            return sign + tl("currency", currency, ess.getSettings().getCurrencySymbol());
-        }
-        return sign + tl("currency", ess.getSettings().getCurrencySymbol(), currency);
+        return getRPMoney(value);
     }
 
     public static String sanitizeCurrencyString(final String input, final IEssentials ess) {
@@ -94,7 +56,7 @@ public class NumberUtil {
         if (input.contains(symbol)) {
             return suffix ? input.substring(0, input.indexOf(symbol)) : input.substring(symbol.length());
         }
-        return input;
+        return getRPMoney(new BigDecimal(input));
     }
 
     public static boolean isInt(final String sInt) {
@@ -111,5 +73,24 @@ public class NumberUtil {
             return false;
         }
         return Integer.parseInt(sInt) > 0;
+    }
+
+    private static String getRPMoney(BigDecimal value) {
+        /*
+         * One Standard currency is equal to 100 knuts
+         * Examples:
+         * 1.00 = 0 Galleons, 3 Sickles and 13 Knuts
+         * 10.00 = 2 Galleons, 0 Sickles and 14 Knuts
+         */
+        int tempKnuts = (int) (value.doubleValue() * 100d);
+        int knuts = tempKnuts % 29;
+        int tempSickles = tempKnuts / 29;
+        int sickles = tempSickles % 17;
+        int galleons = tempSickles / 17;
+        return ChatColor.of("#FFD700") + "" + galleons + " Galleon" + (galleons == 1 ? "" : "s")
+                + ChatColor.of("#A0A0A0") + ", "
+                + ChatColor.of("#C0C0C0") + sickles + " Sickle" + (sickles == 1 ? "" : "s")
+                + ChatColor.of("#A0A0A0") + " and "
+                + ChatColor.of("#CD7F32") + knuts + " Knut" + (knuts == 1 ? "" : "s");
     }
 }
