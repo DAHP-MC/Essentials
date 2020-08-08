@@ -41,7 +41,6 @@ public class Commandpay extends EssentialsLoopCommand {
         String stringAmount = args[1].replaceAll("[^0-9\\.]", "");
 
         if (stringAmount.length() < 1) {
-            System.out.println("too little");
             throw new NotEnoughArgumentsException();
         }
 
@@ -58,8 +57,6 @@ public class Commandpay extends EssentialsLoopCommand {
             }
         }
 
-        System.out.println(amount);
-        System.out.println(ess.getSettings().getMinimumPayAmount());
         if (amount.compareTo(ess.getSettings().getMinimumPayAmount()) < 0) { // Check if amount is less than minimum-pay-amount
             throw new Exception(tl("minimumPayAmount", NumberUtil.displayCurrencyExactly(ess.getSettings().getMinimumPayAmount(), ess)));
         }
